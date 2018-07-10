@@ -22,11 +22,11 @@ void MyChat::BuildJson(std::string &json) {
 
   root["content"] = _message;
   root["cmd"] = _cmd;
-  root["to"] = _name;
+  root["to"] = _to;
   root["num"] = static_cast<int>(sm.Size());
   // cmd 是 3 表示要单聊，需要单独构造 json
   if (_cmd == "3") {
-    root["name"] = _to;
+    root["name"] = _name;
   } else {
     root["name"] = _name;
   }
