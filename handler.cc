@@ -51,12 +51,31 @@ int MyChat::ReadMessage() {
     return 0;
   }
 }
+int MyChat::BroadCast() {
+  // 广播
+  for (auto i : sm.m) {
+    if (i.first != _sockfd) {
+      std::cout << buf << std::endl;
+      ssize_t write_size = write(i.first, buf, strlen(buf));
+      if (write_size < 0) {
+        std::cerr << "write error" << std::endl;
+        return -1;
+      }
+    }
+  }
+  return 0;
+}
 int MyChat::SendMessage() {
   std::string json;
   BuildJson(json);
   strcpy(buf, json.c_str());
   if (_cmd == "2") {
     sm.Erase(_sockfd);
+    std::string json;
+    BuildJson(json);
+    strcpy(buf, json.c_str());
+    BroadCast();
+    return 1;
   } else if (_cmd == "3") {
     // 单聊
     for (auto i : sm.m) {
@@ -69,17 +88,7 @@ int MyChat::SendMessage() {
       }
     }
   } else {
-    // 广播
-    for (auto i : sm.m) {
-      if (i.first != _sockfd) {
-        ssize_t write_size = write(i.first, buf, strlen(buf));
-        if (write_size < 0) {
-          std::cerr << "write error" << std::endl;
-          return -1;
-        }
-      }
-    }
-
+    BroadCast();
   }
   //printf("%s\n", buf);
   return 0;

@@ -34,6 +34,8 @@ class MyChat {
   int ParseJson();
   void BuildJson(std::string &json);
  private:
+  int BroadCast();
+
   int _sockfd;
   std::string _cmd;
   std::string _name;

@@ -74,9 +74,13 @@ void *Server::ThreadRoute(void *arg) {
       sm.Erase(sockfd);
       break;
     } else {
-      if (my_chat.SendMessage() < 0) {
+      int ret = my_chat.SendMessage();
+      if (ret < 0) {
         std::cerr << "send message error" << std::endl;
         sm.Erase(sockfd);
+        break;
+      } else if (ret > 0) {
+        // client quit
         break;
       }
     }
