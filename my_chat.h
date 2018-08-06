@@ -13,6 +13,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include "jsoncpp/json/json.h"
+#include "thread_pool.hpp"
 
 typedef struct sockaddr sockaddr;
 typedef struct sockaddr_in sockaddr_in;
@@ -55,6 +56,6 @@ class SafeMap {
   std::map<int, std::string> m;
   pthread_mutex_t mutex;
 };
-
+class Process;
 extern SafeMap sm;
 #endif /* end of include guard: __MY_CHAT_H__ */

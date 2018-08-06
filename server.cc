@@ -6,6 +6,43 @@
 
 #include "my_chat.h"
 
+class Process {
+ public:
+  Process(int sockfd):_sockfd(sockfd) {
+  }
+  void process() {
+    //int sockfd = reinterpret_cast<int64_t>(arg);
+    MyChat my_chat(_sockfd);
+    while (1) {
+      std::cout << "进入主循环" << std::endl;
+      if (my_chat.ReadMessage() < 0) {
+        printf("ReadMessage error!\n");
+        sm.Erase(_sockfd);
+        break;
+      } else {
+        int ret = my_chat.SendMessage();
+        if (ret < 0) {
+          std::cerr << "send message error" << std::endl;
+          sm.Erase(_sockfd);
+          break;
+        } else if (ret > 0) {
+          // client quit
+          break;
+        }
+      }
+      printf("SendMessage ok!\n");
+      //std::cout << ss.Size() << std::endl;
+      //ss.Erase(sockfd);
+      //std::cout << ss.Size() << std::endl;
+
+    }
+    close(_sockfd);
+  }
+ private:
+  int _sockfd;
+
+};
+
 Server::Server(std::string ip, std::string port)
   :_ip(ip), _port(port) {
 }
@@ -42,6 +79,8 @@ int Server::Run() {
     std::cout << "listen success!" << std::endl;
   }
   // 4. wait connect
+  //
+  ThreadPool<Process> *pool = new ThreadPool<Process>();
   while (1) {
     sockaddr_in client;
     socklen_t len = sizeof(client);
@@ -56,40 +95,13 @@ int Server::Run() {
       std::cout << "accept success!" << std::endl;
     }
 
-    int64_t fd = new_fd;
-    pthread_t thread_id;
-    pthread_create(&thread_id, 0, ThreadRoute, reinterpret_cast<void *>(fd));
-    pthread_detach(thread_id);
+    //int64_t fd = new_fd;
+    Process *process = new Process(new_fd);
+    pool->Append(process);
+    //pthread_t thread_id;
+    //pthread_create(&thread_id, 0, ThreadRoute, reinterpret_cast<void *>(fd));
+    //pthread_detach(thread_id);
   }
   close(sockfd);
   return 0;
-}
-void *Server::ThreadRoute(void *arg) {
-  int sockfd = reinterpret_cast<int64_t>(arg);
-  MyChat my_chat(sockfd);
-  while (1) {
-    std::cout << "进入主循环" << std::endl;
-    if (my_chat.ReadMessage() < 0) {
-      printf("ReadMessage error!\n");
-      sm.Erase(sockfd);
-      break;
-    } else {
-      int ret = my_chat.SendMessage();
-      if (ret < 0) {
-        std::cerr << "send message error" << std::endl;
-        sm.Erase(sockfd);
-        break;
-      } else if (ret > 0) {
-        // client quit
-        break;
-      }
-    }
-    printf("SendMessage ok!\n");
-    //std::cout << ss.Size() << std::endl;
-    //ss.Erase(sockfd);
-    //std::cout << ss.Size() << std::endl;
-
-  }
-  close(sockfd);
-  return NULL;
 }

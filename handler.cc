@@ -37,12 +37,14 @@ void MyChat::BuildJson(std::string &json) {
 int MyChat::ReadMessage() {
   ssize_t read_size = read(_sockfd, buf, sizeof(buf) - 1);
   if (read_size < 0) {
+    std::cerr << "read socket error" << std::endl;
     return -1;
   } else if (read_size == 0) {
     // client quit
     return -2;
   } else {
     buf[read_size] = '\0';
+    std::cout << buf << std::endl;
     if (ParseJson() < 0) {
       std::cerr << "json 解析失败" << std::endl;
       return -3;
