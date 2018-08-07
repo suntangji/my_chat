@@ -45,8 +45,8 @@ ThreadPool<T>::ThreadPool(int thread_num, int max_request)
 
 template <typename T>
 ThreadPool<T>::~ThreadPool() {
-  pthread_mutex_destory(&_lock);
-  sem_destory(&_queuestat);
+  pthread_mutex_destroy(&_lock);
+  sem_destroy(&_queuestat);
   delete []_threads;
   _stop = true;
 }
@@ -87,6 +87,7 @@ void ThreadPool<T>::run() {
       continue;
     }
     request->process();
+    delete request;
   }
 }
 #endif /* end of include guard: __THREAD_POOL_H__ */

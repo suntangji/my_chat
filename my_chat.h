@@ -7,7 +7,9 @@
 #include <cstring>
 #include <cstdlib>
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/socket.h>
+#include <sys/epoll.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
@@ -18,14 +20,21 @@
 typedef struct sockaddr sockaddr;
 typedef struct sockaddr_in sockaddr_in;
 
+class Process;
 class Server {
  public:
   Server(std::string ip, std::string port);
+  ~Server();
   int Run();
   static void *ThreadRoute(void *);
  private:
+  void SetNonBlock(int sockfd);
+  void ProcessRequest(int connect_fd, int epoll_fd);
+  void ProcessConnect(int listen_fd, int epoll_fd);
+ private:
   std::string _ip;
   std::string _port;
+  ThreadPool<Process> *pool;
 };
 class MyChat {
  public:
@@ -36,6 +45,7 @@ class MyChat {
   void BuildJson(std::string &json);
  private:
   int BroadCast();
+  ssize_t NonBlockRead(int fd, char *buf, int size);
 
   int _sockfd;
   std::string _cmd;
@@ -47,6 +57,7 @@ class MyChat {
 class SafeMap {
  public:
   friend class MyChat;
+  friend class Server;
   SafeMap();
   ~SafeMap();
   void Insert(int fd, std::string &name);
@@ -56,6 +67,5 @@ class SafeMap {
   std::map<int, std::string> m;
   pthread_mutex_t mutex;
 };
-class Process;
 extern SafeMap sm;
 #endif /* end of include guard: __MY_CHAT_H__ */

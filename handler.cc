@@ -34,24 +34,38 @@ void MyChat::BuildJson(std::string &json) {
   json = root.toStyledString();
   //std::cout << json << std::endl;
 }
+ssize_t MyChat::NonBlockRead(int fd, char *buf, int size) {
+  (void) size;
+  ssize_t total_size = 0;
+  while (1) {
+    ssize_t cur_size = read(fd, buf + total_size, 1024);
+    total_size += cur_size;
+    if (cur_size < 1024 || errno == EAGAIN || errno == EWOULDBLOCK) {
+      break;
+    }
+  }
+  buf[total_size] = '\0';
+  return total_size;
+}
 int MyChat::ReadMessage() {
-  ssize_t read_size = read(_sockfd, buf, sizeof(buf) - 1);
+  ssize_t read_size = NonBlockRead(_sockfd, buf, sizeof(buf) - 1);
   if (read_size < 0) {
     std::cerr << "read socket error" << std::endl;
     return -1;
   } else if (read_size == 0) {
     // client quit
+    //std::cerr << "read_size == 0" << std::endl;
     return -2;
   } else {
-    buf[read_size] = '\0';
+    //buf[read_size] = '\0';
     std::cout << buf << std::endl;
     if (ParseJson() < 0) {
       std::cerr << "json 解析失败" << std::endl;
       return -3;
     }
     sm.Insert(_sockfd, _name);
-    return 0;
   }
+  return 0;
 }
 int MyChat::BroadCast() {
   // 广播
