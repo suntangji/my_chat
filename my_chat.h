@@ -48,7 +48,8 @@ class MyChat {
   ssize_t NonBlockRead(int fd, char *buf, int size);
 
   int _sockfd;
-  std::string _cmd;
+  int _cmd;
+  int _room;
   std::string _name;
   std::string _message;
   std::string _to;

@@ -10,8 +10,9 @@ int MyChat::ParseJson() {
   } else {
     _name = root["name"].asString();
     _message = root["content"].asString();
-    _cmd = root["cmd"].asString();
+    _cmd = root["cmd"].asInt();
     _to = root["to"].asString();
+    _room = root["room_id"].asInt();
     return 0;
   }
 }
@@ -23,9 +24,10 @@ void MyChat::BuildJson(std::string &json) {
   root["content"] = _message;
   root["cmd"] = _cmd;
   root["to"] = _to;
+  root["room_id"] = _room;
   root["num"] = static_cast<int>(sm.Size());
   // cmd 是 3 表示要单聊，需要单独构造 json
-  if (_cmd == "3") {
+  if (_cmd == 3) {
     root["name"] = _name;
   } else {
     root["name"] = _name;
@@ -85,14 +87,14 @@ int MyChat::SendMessage() {
   std::string json;
   BuildJson(json);
   strcpy(buf, json.c_str());
-  if (_cmd == "2") {
+  if (_cmd == 2) {
     sm.Erase(_sockfd);
     std::string json;
     BuildJson(json);
     strcpy(buf, json.c_str());
     BroadCast();
     return 1;
-  } else if (_cmd == "3") {
+  } else if (_cmd == 3) {
     // 单聊
     for (auto i : sm.m) {
       if (i.second == _to) {
